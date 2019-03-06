@@ -1,0 +1,27 @@
+\BOOKMARK [1][-]{section.1}{Slit\355 repozit\341ru}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{Klon repozit\341re}{section.1}% 2
+\BOOKMARK [2][-]{subsection.1.2}{Klon SVN repozit\341re}{section.1}% 3
+\BOOKMARK [2][-]{subsection.1.3}{Struktura repozit\341ru a postup slit\355}{section.1}% 4
+\BOOKMARK [2][-]{subsection.1.4}{Rebase}{section.1}% 5
+\BOOKMARK [2][-]{subsection.1.5}{Smaz\341n\355 reference na SVN}{section.1}% 6
+\BOOKMARK [2][-]{subsection.1.6}{N\341vrh .gitignore}{section.1}% 7
+\BOOKMARK [2][-]{subsection.1.7}{Commit pod jin\375m u\236ivatelem}{section.1}% 8
+\BOOKMARK [2][-]{subsection.1.8}{Proci\235ten\355 historie od ignorovan\375ch souboru}{section.1}% 9
+\BOOKMARK [2][-]{subsection.1.9}{Proci\235ten\355 referenc\355}{section.1}% 10
+\BOOKMARK [2][-]{subsection.1.10}{Odevzd\341n\355 f\341ze 1}{section.1}% 11
+\BOOKMARK [1][-]{section.2}{Ci\235ten\355 repozit\341re}{}% 12
+\BOOKMARK [2][-]{subsection.2.1}{FIX of FIX}{section.2}% 13
+\BOOKMARK [2][-]{subsection.2.2}{Windows konce r\341dku}{section.2}% 14
+\BOOKMARK [2][-]{subsection.2.3}{Odstranen\355 r\341dku git-svn-id z commit messages}{section.2}% 15
+\BOOKMARK [2][-]{subsection.2.4}{Opravy jmen a adres autoru}{section.2}% 16
+\BOOKMARK [2][-]{subsection.2.5}{Odevzd\341n\355 f\341ze 2}{section.2}% 17
+\BOOKMARK [1][-]{section.3}{Pr\355prava na vyd\341n\355}{}% 18
+\BOOKMARK [2][-]{subsection.3.1}{F*** bomba}{section.3}% 19
+\BOOKMARK [2][-]{subsection.3.2}{Smaz\341n\355 API kl\355cu}{section.3}% 20
+\BOOKMARK [2][-]{subsection.3.3}{O\235t\355tkov\341n\355 verze 0.1.0}{section.3}% 21
+\BOOKMARK [2][-]{subsection.3.4}{V\375voj\341rsk\341 vetev}{section.3}% 22
+\BOOKMARK [2][-]{subsection.3.5}{V\375voj\341rsk\341 vetev}{section.3}% 23
+\BOOKMARK [2][-]{subsection.3.6}{Nasazen\355 hlavn\355ch vetv\355 repozit\341re}{section.3}% 24
+\BOOKMARK [1][-]{section.4}{Vychyt\341vky}{}% 25
+\BOOKMARK [2][-]{subsection.4.1}{\227patn\351 konce r\341dku}{section.4}% 26
+\BOOKMARK [2][-]{subsection.4.2}{V\375pis TODO pri commitu}{section.4}% 27
