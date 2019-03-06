@@ -1,0 +1,318 @@
+\documentclass[titlepage]{article}
+\usepackage[czech]{babel}
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+\usepackage{verbatim}
+\usepackage[parfill]{parskip}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+
+\renewcommand\thesection{Fáze \arabic{section}}
+\renewcommand\thesubsection{\arabic{section}.\arabic{subsection}}
+
+\title{Dokumentace k semestrální práci předmětu BI-GIT}
+\author{Milan Vu}
+
+\begin{document}
+\maketitle
+
+
+
+\section{Slití repozitářů}
+\subsection{Klon repozitáře}
+\ldots nepotřebuje další komentář \ldots
+
+
+\subsection{Klon SVN repozitáře}
+\ldots nepotřebuje další komentář \ldots
+
+\subsection{Struktura repozitářů a postup slití}
+Zjistil jsem, že se v 1. repozitáři nachází 28 commitů a ve 2. SVN repozitáři 29 commitů.
+Také jsem zaznamenal, že jsou poslední 2 commity 1. repozitáře, a poslední 3 commity 2. repozitáře odlišné.
+Pomohlo mi to pochopit, proč by se po slití mělo v repozitáři (resp. větvi master) nacházet 31 commitů.
+
+Byly použity příkazy:
+
+\begin{verbatim}
+git rev-list --all --count
+git remote add svn <svn repo path>
+git fetch --all
+git log --oneline --graph --all
+\end{verbatim}
+
+Přepínač \texttt{--all} mi ukáže log všech commitů, na které ukazuje nějaká reference (\texttt{svn/master}) a ne jen \texttt{master} větev.
+
+\subsection{Rebase}
+Byl použit příkaz:
+
+\begin{verbatim}
+git log --oneline
+\end{verbatim}
+
+pro zjištění adresy větve \texttt{master} a:
+
+\begin{verbatim}
+git rebase --onto svn/master 6493a7a master
+\end{verbatim}
+
+který přesune větev \texttt{master} za větev \texttt{svn/master}.
+Poté jsem opravil konflikty nejdříve v souboru \texttt{index.html} a poté i v \texttt{js/edgebox.js}.
+Na závěr jsem pomocí:
+
+\begin{verbatim}
+git rebase --continue
+\end{verbatim}
+
+dokončil rebase.
+
+\subsection{Smazání reference na SVN}
+Byl použit příkaz:
+\begin{verbatim}
+git remote remove svn
+\end{verbatim}
+
+\subsection{Návrh \texttt{.gitignore}}
+Byl vytvořen nový soubor \texttt{.gitignore}:
+
+\begin{verbatim*}
+echo "*~" >> .gitignore
+\end{verbatim*}
+
+Tento soubor zajišťuje, že bude git ignorovat nové soubory, jejichž jméno končí vlnovkou a které se nachází kdekoliv v repositáři.
+Bude fungovat pouze v těch revizích, kde bude tento commit jejich rodičem.
+
+\subsection{Commit pod jiným uživatelem}
+Byly použity příkazy:
+
+\begin{verbatim}
+git add .gitignore
+git commit --author="Petr <petr@edgebox.net>"
+\end{verbatim}
+
+Přepínač \texttt{--author} je mi znám z přednášek.
+
+\subsection{Pročištění historie od ignorovaných souborů}
+Byl použit příkaz:
+
+\begin{verbatim}
+git filter-branch --force --tree-filter 'git rm -rf --ignore-unmatch *~ 'HEAD
+\end{verbatim}
+
+který projde všechny commity a pro každý commit smaže pomocné soubory.
+Po třetím volání už \texttt{refs/heads/master} zůstaly nezměneny, tudíž v žádném commitu už zaručeně nebyly pomocné soubory.
+
+Příkaz jsem našel na \href{https://stackoverflow.com/questions/45732458/ignore-files-committed-to-git-and-also-remove-them-from-history}{stackoverflow}.
+
+\subsection{Pročištění referencí}
+
+Protože jsem volal minulý příkaz s atributem \texttt{--force}, \texttt{original/*} reference byly vyčištěny.
+
+\subsection{Odevzdání fáze 1}
+Byly použity příkazy:
+\begin{verbatim}
+git checkout -b phase1
+git push --set-upstream --force origin phase1
+\end{verbatim}
+
+Přepínač \texttt{--force} proto, protože to nebyl první pokus.
+
+\section{Čištění repozitáře}
+\subsection{FIX of FIX}
+\begin{verbatim}
+git checkout master
+git log --oneline
+git rebase -i 8ae3296
+\end{verbatim}
+
+Nejdříve jsem se vrátil na větev \texttt{master} pomocí \texttt{git checkout master}.
+Poté jsem pomocí \texttt{git log --oneline} vypsal historii commitů a udělal interaktivní rebase nad commitem, který byl před prvním FIX commitem.
+Následně jsem změnil pick na squash u celkem 6 commitů.
+
+
+\subsection{Windows konce řádků}
+Byly použity příkazy:
+\begin{verbatim}
+git filter-branch --force --tree-filter '
+sed -i "" 's/^M$//g' index.html'
+--tag-name-filter cat -- --all HEAD
+\end{verbatim}
+
+Sed příkaz jsem našel na \href{https://stackoverflow.com/questions/2613800/how-to-convert-dos-windows-newline-crlf-to-unix-newline-lf-in-a-bash-script}{stackoverflow}.
+Pak už jsem jen dosadil script do kanónu k smazání znaků ze všech commitů.
+
+\underline{Pozn.:} Z nějakého důvodu se změnily commity i před prvním výskytem CRLF a tak jsem musel použít přepínač pro zachování tagů.
+
+
+\subsection{Odstranění řádků \uv{git-svn-id} z commit messages}
+Byly použity příkazy:
+
+\begin{verbatim}
+git filter-branch -f --msg-filter '
+sed -e "/git-svn-id:/d" -e "/Former-commit-id:/d"'
+--tag-name-filter cat -- --all
+\end{verbatim}
+
+Opět jsem se inspiroval na \href{https://stackoverflow.com/questions/16092509/how-to-remove-svn-url-from-commit-messages?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa}{stackoverflow}, ale přidal jsem tam tagy, aby se zachovaly reference.
+
+
+\subsection{Opravy jmen a adres autorů}
+Na opravu jmen a adres autorů jsem použil script:
+
+\begin{verbatim}
+git filter-branch --env-filter '
+OLD_NAME="petr"
+CORRECT_NAME="Petr"
+CORRECT_EMAIL="petr@edgebox.net"
+if [ "$GIT_COMMITTER_NAME" = "$OLD_NAME" ]
+then
+export GIT_COMMITTER_NAME="$CORRECT_NAME"
+export GIT_COMMITTER_EMAIL="$CORRECT_EMAIL"
+fi
+if [ "$GIT_AUTHOR_NAME" = "$OLD_NAME" ]
+then
+export GIT_AUTHOR_NAME="$CORRECT_NAME"
+export GIT_AUTHOR_EMAIL="$CORRECT_EMAIL"
+fi
+' --force --tag-name-filter cat -- --branches --tags --all
+\end{verbatim}
+
+který jsem našel \href{https://help.github.com/articles/changing-author-info/}{zde}.
+
+Jen jsem si musel dohledat pomocí \texttt{git log}, která jména jsou špatně.
+
+
+\subsection{Odevzdání fáze 2}
+Byly použity příkazy:
+
+\begin{verbatim}
+git checkout -b phase2
+git push --set-upstream --force origin phase2
+\end{verbatim}
+
+\section{Příprava na vydání}
+\subsection{F*** bomba}
+
+Byl použit příkaz:
+
+\begin{verbatim}
+git filter-branch --tree-filter "git grep -l 'fuck' | xargs
+sed -i '' -e 's/TODO.*fuck.*$/TODO/g'" -f --tag-name-filter cat -- --all HEAD
+\end{verbatim}
+
+který jsem už pomocí předchozích příkazů a znalostí z PS1 vymyslel.
+
+\subsection{Smazání API klíčů}
+Byly použity příkazy:
+\begin{verbatim}
+cp js/keys.js js/keys.js.backup
+git filter-branch --force --tree-filter '
+git rm -f --ignore-unmatch js/keys.js' --tag-name-filter cat -- --all HEAD
+mv js/keys.js.backup js/keys.js
+\end{verbatim}
+
+které nejdříve skopírují soubor \texttt{js/keys.js}, následně smaže tento soubor že všech commitů a uloží soubor lokálně.
+
+\subsection{Oštítkování verze 0.1.0}
+
+Byl použit příkaz:
+
+\begin{verbatim}
+git log --patch -- VERSION
+\end{verbatim}
+
+který vrátil adresu commitu, kde byl změněn soubor z verze \texttt{0.0.1\_testing} na \texttt{0.1.0}.
+
+\begin{verbatim}
+git checkout 6cdf14c9850fa49a6a27fea90853e41a45a54da8
+git tag v0.1.0
+git checkout master
+\end{verbatim}
+
+tag a checkout znám z přednášek.
+
+\subsection{Vývojářská větev}
+
+Byly použity příkazy:
+
+\begin{verbatim}
+git branch dev
+git reset --hard v0.1.0
+git checkout dev
+git push --force origin dev
+git push --force origin dev --tags
+git push --force origin master
+git push --force origin master --tags
+\end{verbatim}
+
+Pro jistotu jsem udělal push ještě s přepínačem \texttt{--tags}.
+
+Inspirace ze \href{https://stackoverflow.com/questions/1628563/move-the-most-recent-commits-to-a-new-branch-with-git}{stackoverflow}.
+
+\subsection{Vývojářská větev}
+Byly použity příkazy:
+
+\begin{verbatim}
+git branch dev
+git reset --hard v0.1.0
+git checkout dev
+\end{verbatim}
+
+\subsection{Nasazení hlavních větví repozitáře}
+Byly použity příkazy:
+\begin{verbatim}
+git push --force origin dev
+git push --force origin dev --tags
+git push --force origin master
+git push --force origin master --tags
+\end{verbatim}
+
+Pro jistotu jsem udělal push ještě s přepínačem \texttt{--tags}.
+
+Inspirace ze \href{https://stackoverflow.com/questions/1628563/move-the-most-recent-commits-to-a-new-branch-with-git}{stackoverflow}.
+
+\section{Vychytávky}
+
+\subsection{Špatné konce řádků}
+
+Jeden ze způsobů, jak to vyřešit je příkaz \texttt{git config}.
+
+Postup se liší podle toho, na kterém OS se nacházíme:
+
+\begin{enumerate}
+    \item Na \emph{Linux/OSX}, provedeme příkaz:
+        \begin{verbatim}git config --global core.autocrlf input\end{verbatim}
+        Tento příkaz nám převede jakékoliv \texttt{CRLF} na \texttt{LF} při \texttt{commitu}.
+    \item Na \emph{Windows}, provedeme příkaz:
+        \begin{verbatim}git config --global core.autocrlf true\end{verbatim}
+        Tento příkaz nám při \texttt{checkoutu} převede \texttt{LF} na \texttt{CRLF} a při \texttt{commitu} zpátky \texttt{CRLF} na \texttt{LF}.
+\end{enumerate}
+
+Tyto příkazy jsem zjistil ze \href{https://stackoverflow.com/questions/10418975/how-to-change-line-ending-settings?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa}{stackoverflow}.
+
+
+\subsection{Výpis TODO při commitu}
+
+Toto bych řešil pomocí \texttt{git hook}.
+
+Nejdřív je za potřebí soubor, do kterého zadáme script, který se bude volat po každém commitu.
+
+\begin{verbatim}
+vim .git/hooks/post-commit
+\end{verbatim}
+
+Poté do něj vložíme nějaký script. Nejspíše by stačilo mít nejaký soubor, ve kterém budou vývojáři při každém commitu připisovat nějaké TODO.
+
+\begin{verbatim}
+#!/bin/bash
+vim TODO.txt
+git commit -m "update TODO list"
+\end{verbatim}
+
+Na závěr už jen stačí soubor post-commit udělat executable:
+
+\begin{verbatim}
+chmod +x .git/hooks/post-commit
+\end{verbatim}
+
+Inspirace: \href{https://www.digitalocean.com/community/tutorials/how-to-use-git-hooks-to-automate-development-and-deployment-tasks}{zde}.
+
+\end{document}
